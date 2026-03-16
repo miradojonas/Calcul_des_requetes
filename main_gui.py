@@ -4,6 +4,7 @@ from tkinter import messagebox
 from data import DEMANDES_INITIALES, CAPACITES_INITIALES, COUTS_INITIAUX
 from optimisation import resoudre_probleme
 from visualisation import afficher_graphiques
+from tkinter import ttk
 
 class ApplicationLogistique(tk.Tk):
     def __init__(self):
@@ -18,6 +19,27 @@ class ApplicationLogistique(tk.Tk):
         
         info = tk.Label(self, text="Calcul de la répartition optimale des requêtes sous contraintes.\nTechnologie : Python / PuLP", justify="center")
         info.pack(pady=10)
+
+        # Partie E : Scénario et analyse de sensibilité
+        cadre_scenarios = tk.LabelFrame(self, text="Scénarios Prédefinis")
+        cadre_scenarios.pack(pady=5, padx=10, fill="x")
+
+        # Menu déroulant
+        self.list_scenarios = [
+            "0) Situation initiale",
+            "1) Augmentation de 20% des requêtes",
+            "2) Réduction de 25% de la capacité de C2",
+            "3) Augmentation de 30% des coûts de C3",
+            "4) Indisponibilité temporaire de C1"
+        ]
+        self.combo_scenarios = ttk.Combobox(cadre_scenarios, values=self.list_scenarios, width=40, state="readonly")
+        self.combo_scenarios.current(0) # Premier scénario par défaut
+        self.combo_scenarios.pack(side=tk.LEFT, padx=10, pady=10)
+
+        # Bouton pour changer de scénario
+        btn_changer_scenario = tk.Button(cadre_scenarios, text="Appliquer le scénario", command=self.appliquer_scenario)
+        btn_changer_scenario.pack(side=tk.LEFT, padx=10, pady=10)
+
 
         # Cadre pour les coûts unitaires
         cadre_couts = tk.LabelFrame(self, text="Coûts unitaires de traitement")
@@ -83,6 +105,45 @@ class ApplicationLogistique(tk.Tk):
         # Zone de texte pour afficher les résultats
         self.resultats_text = tk.Text(self, height=12, width=70, state=tk.DISABLED)
         self.resultats_text.pack(pady=10)
+
+    def appliquer_scenario(self):
+        choix = self.combo_scenarios.get()
+        # On remet les valeurs de bases d'abord avant de passer au suite
+        for r in ['R1', 'R2', 'R3', 'R4']:
+            self.entries_demandes[r].delete(0, tk.END)
+            self.entries_demandes[r].insert(0, str(DEMANDES_INITIALES[r]))
+
+            for c in ['C1', 'C2', 'C3']:
+                self.entries_couts[r][c].delete(0, tk.END)
+                self.entries_couts[r][c].insert(0, str(COUTS_INITIAUX[r][c]))
+
+        for c in ['C1', 'C2', 'C3']:
+            self.entries_capacites[c].delete(0, tk.END)
+            self.entries_capacites[c].insert(0, str(CAPACITES_INITIALES[c])) 
+
+        # Vient ensuite la modification en fonction du scénario choisie
+        if "1) Augmentation de 20% des requêtes" in choix:
+            for r in ['R1', 'R2', 'R3', 'R4']:
+                new_d = int(DEMANDES_INITIALES[r] * 1.20)
+                self.entries_demandes[r].delete(0, tk.END)
+                self.entries_demandes[r].insert(0, str(new_d))
+
+        elif "2) Réduction de 25% de la capacité de C2" in choix:
+            new_cap = int(CAPACITES_INITIALES['C2'] * 0.75)
+            self.entries_capacites['C2'].delete(0, tk.END)
+            self.entries_capacites['C2'].insert(0, str(new_cap))
+        
+        elif "3) Augmentation de 30% des coûts de C3" in choix:
+            for r in ['R1', 'R2', 'R3', 'R4']:
+                newc_cout = round(COUTS_INITIAUX[r]['C3'] * 1.30, 2)
+                self.entries_couts[r]['C3'].delete(0, tk.END)
+                self.entries_couts[r]['C3'].insert(0, str(newc_cout))
+        
+        elif "4) Indisponibilité temporaire de C1" in choix:
+            self.entries_capacites['C1'].delete(0, tk.END)
+            self.entries_capacites['C1'].insert(0, "0")
+
+        messagebox.showinfo("Scénario chargé", f"La scénario a été changé aux données de saisie.\nCliquez sur 'lancer l'optimisation'")
 
     def lancer_calcul(self):
         """Fonction appelée quand on clique sur le bouton"""
