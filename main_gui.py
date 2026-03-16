@@ -19,6 +19,9 @@ class ApplicationLogistique(tk.Tk):
         info = tk.Label(self, text="Calcul de la répartition optimale des requêtes sous contraintes.\nTechnologie : Python / PuLP", justify="center")
         info.pack(pady=10)
 
+        # Cadre pour les capacités
+        cadre_capacites = tk
+
         # Cadre pour les demandes
         cadre_demandes = tk.LabelFrame(self, text="Demandes")
         cadre_demandes.pack(pady=10, padx=10, fill="x")
@@ -58,7 +61,7 @@ class ApplicationLogistique(tk.Tk):
             }
 
             solution = resoudre_probleme(nouvelles_demandes, CAPACITES_INITIALES, COUTS_INITIAUX)
-            
+
             self.resultats_text.config(state=tk.NORMAL)
             self.resultats_text.delete(1.0, tk.END) # On efface le texte précédent
             
