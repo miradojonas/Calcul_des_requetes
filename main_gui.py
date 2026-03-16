@@ -10,7 +10,7 @@ class ApplicationLogistique(tk.Tk):
         super().__init__()
         
         self.title("Optimisation d'un système logistique numérique")
-        self.geometry("700x750")
+        self.geometry("1000x2000")
         
         # --- Interface (Widgets) ---
         titre = tk.Label(self, text="Modélisation Logistique", font=("Helvetica", 16, "bold"))
@@ -126,8 +126,15 @@ class ApplicationLogistique(tk.Tk):
                     for c, val in centres.items():
                         if val > 0:
                             affichage += f" • {val} requêtes de {r} traitées par {c}\n"
+                
+                affichage += "\n PÉNALITÉS ET DÉPASSEMENTS (> 90%) ---\n"
+                for c, val in solution.get("depassement", {}).items():
+                    if val > 0:
+                        affichage += f"Le centre {c} dépasse sa limite de {val} requêtes (Pénalité ajoutée)\n"
+                    else:
+                        affichage += f"Le centre {c} est dans la norme (< 90% de capacité)\n"
             else:
-                affichage = "Erreur : Impossible de trouver une solution (Capacités insuffisantes ?)"
+                affichage = "Erreur : Impossible de trouver une solution (Capacités insuffisantes)"
                 
             self.resultats_text.insert(tk.END, affichage)
             self.resultats_text.config(state=tk.DISABLED)
