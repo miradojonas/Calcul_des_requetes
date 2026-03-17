@@ -103,4 +103,4 @@ def afficher_graphiques(resultats, capacites_max, couts_unitaires):
 
     # Ajustement de l'espacemen et affichage
     plt.tight_layout()
-    plt.show()
+    return fig

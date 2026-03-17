@@ -1,5 +1,6 @@
 # Partie optimisation : couche modélisation et optimisation
 import pulp
+from data import LATENCES, LATENCE_MAX, ENERGIE, ENERGIE_MAX, COUTS_FIXES
 
 """
 fonction qui modélise et résout le problème d'optimisation logistique
@@ -22,6 +23,11 @@ def resoudre_probleme(demandes, capacites, couts):
 
     #Contrainte supplementaire : variable supplémentaires pour la pénalité (Dépassement > 90%)
     #Variables pour savoir combien de requêtes dépassent les 90%
+
+    # --- EXTENSION : Variables binaires d'activation (Section 1.1) ---
+    # y_C1 = 1 si le centre est allumé, 0 sinon
+    y = pulp.LpVariable.dicts("y", centres, cat='Binary')
+
     depassement = pulp.LpVariable.dicts("depassement", centres, lowBound=0, cat='Continuous')
 
     # 3) Fonction objectif (Coût total à minimiser)
@@ -29,7 +35,11 @@ def resoudre_probleme(demandes, capacites, couts):
     # Somme des (x_ij * cout_ij) + une penalité de 5 euro(arbitraire) par requête au-déla de 90% de capacité
     cout_transport = pulp.lpSum(x[i][j] * couts[i][j] for i in regions for j in centres)
     cout_penalite = pulp.lpSum(depassement[j] * 5 for j in centres)
-    modele += cout_transport + cout_penalite, "Cout_Total"
+    # --- EXTENSION : Coût fixe d'activation dans objectif (Section 1.2) ---
+    cout_fixes = pulp.lpSum(y[j] * COUTS_FIXES[j] for j in centres)
+    
+    modele += cout_transport + cout_penalite + cout_fixes, "Cout_Total"
+
 
     # 4) Contraintes mathématiques
     #Contrainte A: Tous les demandes de chaque région doivent être traité
@@ -44,7 +54,7 @@ def resoudre_probleme(demandes, capacites, couts):
     
     # Partie F du projet( Le centre C3 ne peut pas traiter les requêtes de R4)
     # On force simplement cette variable à 0
-    modele += x['R4']['C3'] == 0 , "Interdection_R4_C3"
+    # modele += x['R4']['C3'] == 0 , "Interdection_R4_C3"
 
     # Contrainte D : Un centre ne peut pas traiter plus de 60% des requêtes d'une même region
     # Ce contrainte aussi valide la contrainte "chaque région est desservie par au moins 2 centres"
@@ -59,6 +69,25 @@ def resoudre_probleme(demandes, capacites, couts):
     for j in centres :
         seuil_90 = 0.90 * capacites[j]
         modele += pulp.lpSum(x[i][j] for i in regions) - seuil_90 <= depassement[j], f"Calcul du depassement_{j}"
+
+    # --- EXTENSION : Contrainte Energétique (Section 2) ---
+    # La somme des (requêtes traitées par C * énergie de C) <= ENERGIE_MAX
+    energie_totale = pulp.lpSum(x[i][j] * ENERGIE[j] for i in regions for j in centres)
+    modele += energie_totale <= ENERGIE_MAX, "Limite_Energie_Globale"
+
+    # --- EXTENSION : Latence Maximale (Section 3.1) ---
+    # Si la latence dépasse 35ms, on interdit le trajet
+    for i in regions:
+        for j in centres:
+            if LATENCES[i][j] > LATENCE_MAX:
+                modele += x[i][j] == 0, f"Latence_Max_Depassee_{i}_{j}"
+
+    # --- EXTENSION : Liaison variables y et x (Section 1.1) ---
+    # Si x > 0 alors y doit être = 1 (et un centre activé doit avoir au moins 200 requêtes)
+    for j in centres:
+        modele += pulp.lpSum(x[i][j] for i in regions) <= capacites[j] * y[j], f"Liaison_Activation_Capacite_{j}"
+        modele += pulp.lpSum(x[i][j] for i in regions) >= 200 * y[j], f"Liaison_Activation_Minimum_200_{j}"
+
     # 5) Resolution du probleme
     # Le solveur va chercher la meilleure valeur pour chaque x_ij
     modele.solve()
@@ -84,6 +113,9 @@ def resoudre_probleme(demandes, capacites, couts):
         
         for j in centres:
             resultats["depassement"][j] = depassement[j].varValue # valeur du depassement
+            
+        resultats["centres_actifs"] = {j: y[j].varValue for j in centres}
+
             
     return resultats
 
