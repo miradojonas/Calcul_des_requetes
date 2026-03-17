@@ -8,7 +8,7 @@ Fonction qui génère deux graphique qui analyse la solution optimale:
 2- Repartition géographique
 """
 
-def afficher_graphiques(resultats, capacites_max):
+def afficher_graphiques(resultats, capacites_max, couts_unitaires):
     # On s'assure qu'on a bien une solution valide
     if resultats['statut'] != 'Optimal':
         print("Erreur : valeur non optimal, impossible de tracer les graphiques")
@@ -20,7 +20,7 @@ def afficher_graphiques(resultats, capacites_max):
     centres = list(repartition[regions[0]].keys())
 
     # PREPARATION DE LA FIGURE GLOBALE
-    plt.figure(figsize=(12,5))
+    fig = plt.figure(figsize=(12, 8))
 
     # GRAPHIQUE 1: Utilisation des capacitéz
     
@@ -34,7 +34,7 @@ def afficher_graphiques(resultats, capacites_max):
     valeurs_charges = list(charges.values())
     valeurs_max = [capacites_max[c] for c in noms_centres]
 
-    plt.subplot(1, 2, 1) #Position : 1ère ligne, 2 colonnes, 1er graphe
+    plt.subplot(2, 2, 1) #Position : 1ère ligne, 2 colonnes, 1er graphe
     x = np.arange(len(noms_centres))
     largeur = 0.35 #Largeur des barres
 
@@ -48,7 +48,7 @@ def afficher_graphiques(resultats, capacites_max):
     plt.legend()
 
     # GRAPHIQUE 2:repartition par régions
-    plt.subplot(1, 2, 2) #Position : 1ère ligne, 2 colonne, 2è graphe
+    plt.subplot(2, 2, 2) #Position : 1ère ligne, 2 colonne, 2è graphe
 
     # Graphiques en barres empilées
     bottom = np.zeros(len(regions))
@@ -63,6 +63,43 @@ def afficher_graphiques(resultats, capacites_max):
     plt.ylabel('Total des requêtes envoyées')
     plt.title('Destination des requêes par région')
     plt.legend(title="Centres de traitement")
+
+    # Tableau recapitulatif des couts unitaires
+    ax_tableau = plt.subplot(2, 1, 2) # Position : 2 lignes au total, 1 grande colonne, 2è postion
+    ax_tableau.axis('off') # On cache les axes
+
+    donnees_tableau = [] # Calcul du cout total de chaque region
+
+    for r in regions:
+        cout_region = 0
+        detail = [] # Info de qui envoie combien à quel prix
+
+        for c in centres:
+            quantite = repartition[r][c]
+            if quantite > 0:
+                prix_unitaire = couts_unitaires[r][c]
+                cout_total_trajet = quantite * prix_unitaire
+                cout_region += cout_total_trajet
+                detail.append(f"{quantite} vers {c}")
+        
+        # Ajout de la ligne région, détail, cout total
+        donnees_tableau.append([r, " + ".join(detail), f"{cout_region} euro"])
+
+    # 2) Construction du tableau graphique
+    colonnes = ["Régions", "Répartition des requêtes", "Coût engendré"]
+
+    tableau = ax_tableau.table(
+        cellText=donnees_tableau,
+        colLabels=colonnes,
+        cellLoc='center',
+        loc='center',
+        bbox=[0.1, 0.1, 0.8, 0.8] # Définit la taille de la boite du tableau[x, y, largeur, hauteur]
+    )
+
+    tableau.auto_set_font_size(False)
+    tableau.set_fontsize(10)
+    ax_tableau.set_title("Tableau récapitulatif des couts par régions", fontweight='bold', pad=20)
+    
 
     # Ajustement de l'espacemen et affichage
     plt.tight_layout()

@@ -11,14 +11,14 @@ class ApplicationLogistique(tk.Tk):
         super().__init__()
         
         self.title("Optimisation d'un système logistique numérique")
-        self.geometry("1000x2000")
+        self.geometry("900x850")
         
         # --- Interface (Widgets) ---
         titre = tk.Label(self, text="Modélisation Logistique", font=("Helvetica", 16, "bold"))
-        titre.pack(pady=10)
+        titre.pack(pady=2)
         
         info = tk.Label(self, text="Calcul de la répartition optimale des requêtes sous contraintes.\nTechnologie : Python / PuLP", justify="center")
-        info.pack(pady=10)
+        info.pack(pady=2)
 
         # Partie E : Scénario et analyse de sensibilité
         cadre_scenarios = tk.LabelFrame(self, text="Scénarios Prédefinis")
@@ -100,11 +100,18 @@ class ApplicationLogistique(tk.Tk):
         
         # Bouton pour lancer le calcul
         self.btn_calculer = tk.Button(self, text="Lancer l'Optimisation", command=self.lancer_calcul, bg="lightblue", font=("Arial", 12))
-        self.btn_calculer.pack(pady=20)
+        self.btn_calculer.pack(pady=10)
         
-        # Zone de texte pour afficher les résultats
-        self.resultats_text = tk.Text(self, height=12, width=70, state=tk.DISABLED)
-        self.resultats_text.pack(pady=10)
+        # Zone de texte avec barre de défilement 
+        frame_bas = tk.Frame(self)
+        frame_bas.pack(pady=5, padx=20, fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(frame_bas)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.resultats_text = tk.Text(frame_bas, height=10, width=80, yscrollcommand=scrollbar.set, state=tk.DISABLED)
+        self.resultats_text.pack(side=tk.LEFT, fill="both", expand=True)
+        scrollbar.config(command=self.resultats_text.yview)
 
     def appliquer_scenario(self):
         choix = self.combo_scenarios.get()
@@ -202,7 +209,7 @@ class ApplicationLogistique(tk.Tk):
             
             # Si le calcul a marché, on affiche le graphique
             if solution['statut'] == "Optimal":
-                afficher_graphiques(solution, nouvelles_capacites)
+                afficher_graphiques(solution, nouvelles_capacites, nouveaux_couts)
 
         except Exception as e:
             messagebox.showerror("Erreur de calcul", f"Une erreur s'est produite :\n{e}")
