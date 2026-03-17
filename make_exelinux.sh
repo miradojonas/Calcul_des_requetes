@@ -28,10 +28,15 @@ pip install pyinstaller
 
 echo "🔨 4. Lancement de la compilation PyInstaller..."
 # Utilisation de --collect-all pulp car cette bibliothèque dépend de fichiers binaires externes pour le solveur
+# On force l'inclusion de matplotlib et de ses backends graphiques (sinon les graphiques ne s'affichent pas en .exe)
 pyinstaller --noconsole \
             --onefile \
             --clean \
             --collect-all pulp \
+            --collect-all matplotlib \
+            --hidden-import="matplotlib.backends.backend_tkagg" \
+            --hidden-import="matplotlib.backends.backend_pdf" \
+            --hidden-import="numpy" \
             --name "OptiLogistique_Linux" \
             main_gui.py
 
