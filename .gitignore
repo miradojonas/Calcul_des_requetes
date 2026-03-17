@@ -1,3 +1,19 @@
-venv
+# Environments virtuels
+venv/
+env/
+ENV/
+.venv/
 
-__pycache__
+# Dossiers de build (PyInstaller etc)
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Fichiers de log et environnement
+*.log
+.env
+
+# MacOS / OS X
+.DS_Store

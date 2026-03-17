@@ -261,7 +261,7 @@ class ApplicationLogistique(tk.Tk):
                 
                 # --- NOUVEAU : Affichage des centres actifs (Extension 1.2) ---
                 if "centres_actifs" in solution:
-                    affichage += "\n--- STATUT DES SERVEURS (Coût fixe 5000€) ---\n"
+                    affichage += "\n--- STATUT DES SERVEURS (Coûts fixes selon serveur) ---\n"
                     for c, actif in solution["centres_actifs"].items():
                         etat = "ACTIF" if actif == 1 else "INACTIF"
                         affichage += f" • {c} est {etat}\n"
