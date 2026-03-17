@@ -32,9 +32,8 @@ COUTS_INITIAUX = {
     'R3' : {'C1': 6, 'C2': 4, 'C3': 5},
     'R4' : {'C1': 8, 'C2': 7, 'C3': 6}
 }
-# --- NOUVELLES DONNEES : EXTENSIONS (Jour 5-6) ---
 
-# Section 3.1 : Latences (en ms)
+# Contraintes du 5ème jour : Latences (en ms)
 LATENCES = {
     'R1': {'C1': 20, 'C2': 30, 'C3': 40},
     'R2': {'C1': 25, 'C2': 15, 'C3': 35},

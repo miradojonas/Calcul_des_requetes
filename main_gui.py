@@ -67,7 +67,8 @@ class ApplicationLogistique(tk.Tk):
             "1) Augmentation de 20% des requêtes",
             "2) Réduction de 25% de la capacité de C2",
             "3) Augmentation de 30% des coûts de C3",
-            "4) Indisponibilité temporaire de C1"
+            "4) Indisponibilité temporaire de C1",
+            "5) Baisse globale du trafic lié au weekend (-30% demandes)"
         ]
         self.combo_scenarios = ttk.Combobox(cadre_scenarios, values=self.list_scenarios, width=40, state="readonly")
         self.combo_scenarios.current(0) # Premier scénario par défaut
@@ -193,6 +194,12 @@ class ApplicationLogistique(tk.Tk):
         elif "4) Indisponibilité temporaire de C1" in choix:
             self.entries_capacites['C1'].delete(0, tk.END)
             self.entries_capacites['C1'].insert(0, "0")
+
+        elif "5) Baisse globale du trafic lié au weekend (-30% demandes)" in choix:
+            for r in ['R1', 'R2', 'R3', 'R4']:
+                new_d = int(DEMANDES_INITIALES[r] * 0.70)
+                self.entries_demandes[r].delete(0, tk.END)
+                self.entries_demandes[r].insert(0, str(new_d))
 
         messagebox.showinfo("Scénario chargé", f"La scénario a été changé aux données de saisie.\nCliquez sur 'lancer l'optimisation'")
 

@@ -83,7 +83,7 @@ def afficher_graphiques(resultats, capacites_max, couts_unitaires):
                 detail.append(f"{quantite} vers {c}")
         
         # Ajout de la ligne région, détail, cout total
-        donnees_tableau.append([r, " + ".join(detail), f"{cout_region} euro"])
+        donnees_tableau.append([r, "\n".join(detail), f"{cout_region} €"])
 
     # 2) Construction du tableau graphique
     colonnes = ["Régions", "Répartition des requêtes", "Coût engendré"]
@@ -93,12 +93,11 @@ def afficher_graphiques(resultats, capacites_max, couts_unitaires):
         colLabels=colonnes,
         cellLoc='center',
         loc='center',
-        bbox=[0.1, 0.1, 0.8, 0.8] # Définit la taille de la boite du tableau[x, y, largeur, hauteur]
+        bbox=[0.0, 0.0, 1.0, 0.9] # Définit la taille de la boite du tableau[x, y, largeur, hauteur]
     )
 
-    tableau.auto_set_font_size(False)
-    tableau.set_fontsize(10)
-    ax_tableau.set_title("Tableau récapitulatif des couts par régions", fontweight='bold', pad=20)
+    tableau.auto_set_font_size(True)
+    ax_tableau.set_title("Tableau récapitulatif des couts par régions", fontweight='bold', pad=10)
     
 
     # Ajustement de l'espacemen et affichage

@@ -38,7 +38,13 @@ def resoudre_probleme(demandes, capacites, couts):
     # --- EXTENSION : Coût fixe d'activation dans objectif (Section 1.2) ---
     cout_fixes = pulp.lpSum(y[j] * COUTS_FIXES[j] for j in centres)
     
-    modele += cout_transport + cout_penalite + cout_fixes, "Cout_Total"
+    # --- EXTENSION : Distance réseau (Section 3.2) ---
+    # Remplace la Latence Maximale (3.1) qui bloquait le modèle. 
+    # On ajoute au coût objectif une pénalité proportionnelle à la latence ("distance", avec alpha = 0.1)
+    alpha = 0.1
+    cout_latence = pulp.lpSum(alpha * LATENCES[i][j] * x[i][j] for i in regions for j in centres)
+
+    modele += cout_transport + cout_penalite + cout_fixes + cout_latence, "Cout_Total"
 
 
     # 4) Contraintes mathématiques
@@ -53,11 +59,10 @@ def resoudre_probleme(demandes, capacites, couts):
         modele += pulp.lpSum(x[i][j] for i in regions) <= capacites[j], f"Capacite_respectee_{j}"
     
     # Partie F du projet( Le centre C3 ne peut pas traiter les requêtes de R4)
-    # On force simplement cette variable à 0
-    # modele += x['R4']['C3'] == 0 , "Interdection_R4_C3"
+    modele += x['R4']['C3'] == 0 , "Interdiction_R4_C3"
 
     # Contrainte D : Un centre ne peut pas traiter plus de 60% des requêtes d'une même region
-    # Ce contrainte aussi valide la contrainte "chaque région est desservie par au moins 2 centres"
+    # Ce contrainte valide aussi la demande "chaque région est desservie par au moins 2 centres"
     for i in regions:
         for j in centres:
             # 0,6 equivaut à 60%
@@ -75,12 +80,8 @@ def resoudre_probleme(demandes, capacites, couts):
     energie_totale = pulp.lpSum(x[i][j] * ENERGIE[j] for i in regions for j in centres)
     modele += energie_totale <= ENERGIE_MAX, "Limite_Energie_Globale"
 
-    # --- EXTENSION : Latence Maximale (Section 3.1) ---
-    # Si la latence dépasse 35ms, on interdit le trajet
-    for i in regions:
-        for j in centres:
-            if LATENCES[i][j] > LATENCE_MAX:
-                modele += x[i][j] == 0, f"Latence_Max_Depassee_{i}_{j}"
+    # La section 3.1 (Latence stricte) a été remplacée par la section 3.2 (Distance réseau) dans la fonction objectif
+    # car une limitation stricte de latence empêchait de satisfaire R4 selon la combinaison des contraintes métiers.
 
     # --- EXTENSION : Liaison variables y et x (Section 1.1) ---
     # Si x > 0 alors y doit être = 1 (et un centre activé doit avoir au moins 200 requêtes)
